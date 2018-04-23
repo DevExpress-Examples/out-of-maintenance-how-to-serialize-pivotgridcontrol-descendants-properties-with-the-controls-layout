@@ -1,0 +1,42 @@
+# How to serialize PivotGridControl descendant's properties with the control's layout
+
+
+<p><strong>NOTE: This example was created for older XtraPivotGrid versions. The demonstrated solution is appropriate for versions prior to v2011.1.</strong><strong><br />
+</strong><br />
+Generally, to serialize a property of the DevExpress control, it is enough to mark it with the XtraSerializableProperty attribute (see <a href="https://www.devexpress.com/Support/Center/p/K18435">How to serialize a custom property of the DevExpress control's descendant</a>). However, this approach will not work in PivotGridControl since the PivotGridData object, not the PivotGridControl itself, is serialized. So, to accomplish this task, it is required to define the property in PivotGridData, and refer to this property in PivotGridControl. Please see the example's code to see how this should be implemented.</p><p><strong>Starting with version 11.1, it is sufficient to decorate properties declared in the PivotGridControl descendant with the XtraSerializableProperty attribute:</strong></p>
+
+```cs
+public class MyPivotGrid : PivotGridControl, IXtraSupportDeserializeCollectionItem {
+    private List<Class1> _Objects = new List<Class1>();
+    [XtraSerializableProperty(XtraSerializationVisibility.Collection, true)]
+    public List<Class1> Objects {
+        get {
+            return _Objects;
+        }
+    }
+    private Class1 _Object = new Class1();
+    [XtraSerializableProperty(XtraSerializationVisibility.Content)]
+    public Class1 Object {
+        get { return _Object; }
+    }
+    #region IXtraSupportDeserializeCollectionItem Members
+    object IXtraSupportDeserializeCollectionItem.CreateCollectionItem(string propertyName, XtraItemEventArgs e) {
+        if (propertyName == "Objects") {
+            Class1 class1 = new Class1();
+            Objects.Add(class1);
+            return class1;
+        } else return null;
+    }
+
+    void IXtraSupportDeserializeCollectionItem.SetIndexCollectionItem(string propertyName, XtraSetItemIndexEventArgs e) {
+
+    }
+    #endregion
+}
+```
+
+<p> </p>
+
+<br/>
+
+
